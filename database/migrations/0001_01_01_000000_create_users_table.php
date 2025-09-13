@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            $table->string('token')->nullable()->default(bin2hex(random_bytes(16)));
             $table->enum('role',['user','admin'])->default('user');
             $table->bigInteger('highest_score')->default(0);
             $table->string('avatar')->nullable();

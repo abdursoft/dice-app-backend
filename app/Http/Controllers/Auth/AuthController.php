@@ -1,11 +1,10 @@
 <?php
+
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Essentials\JWTAuth;
 use App\Models\User;
-use Carbon\Carbon;
-use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -20,9 +19,9 @@ class AuthController extends Controller
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            "name"  => "required|string",
-            "email" => "required|email|unique:users,email",
-            "password" => "required|string|min:6"
+            "name"     => "required|string",
+            "email"    => "required|email|unique:users,email",
+            "password" => "required|string|min:6",
         ]);
 
         if ($validator->fails()) {
@@ -44,19 +43,36 @@ class AuthController extends Controller
                     ], 400);
                 }
             }
-            User::create(
+            $user = User::create(
                 [
                     "name"     => $request->input('name'),
                     "role"     => $request->role ?? 'user',
                     "email"    => $request->email,
+                    'avatar'   => $request->avatar ?? '1',
                     "password" => Hash::make($request->input('password')),
                 ]
             );
 
             DB::commit();
+
+            $token  = JWTAuth::createToken($user->role, 1, $user->id, $user->email);
+            $expire = now()->addSeconds(3600);
+
             return response()->json([
-                'code'    => 'REGISTRATION_SUCCESSFUL',
-                'message' => 'Your account has been successfully created',
+                'code'       => 'REGISTRATION_SUCCESSFUL',
+                'message'    => 'Your account has been successfully created',
+                'token'      => $token,
+                'expires_in' => $expire,
+                'token_type' => 'Bearer',
+                'user'       => [
+                    'id'            => $user->id,
+                    'role'          => $user->role,
+                    'name'          => $user->name,
+                    'token'         => $user->toke,
+                    'email'         => $user->email,
+                    'avatar'        => $user->avatar,
+                    'highest_score' => $user->highest_score,
+                ],
             ], 201);
         } catch (\Throwable $th) {
             DB::rollBack();
@@ -141,8 +157,8 @@ class AuthController extends Controller
     public function signin(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required',
-            'password'   => 'required',
+            'email'    => 'required',
+            'password' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -165,10 +181,18 @@ class AuthController extends Controller
                 return response()->json([
                     'code'       => 'LOGIN_SUCCESS',
                     'message'    => 'Login successful',
-                    'role'       => $user->role,
                     'token'      => $token,
                     'expires_in' => $expire,
                     'token_type' => 'Bearer',
+                    'user'       => [
+                        'id'            => $user->id,
+                        'role'          => $user->role,
+                        'name'          => $user->name,
+                        'token'         => $user->toke,
+                        'email'         => $user->email,
+                        'avatar'        => $user->avatar,
+                        'highest_score' => $user->highest_score,
+                    ],
                 ], 200);
             } else {
                 return response()->json([
@@ -222,7 +246,8 @@ class AuthController extends Controller
                     'name'          => $user->name,
                     'email'         => $user->email,
                     'role'          => $user->role,
-                    'avatar'         => $user->avatar,
+                    'avatar'        => $user->avatar,
+                    'highest_score' => $user->highest_score,
                 ],
             ], 200);
         } else {
@@ -258,5 +283,4 @@ class AuthController extends Controller
             'expires_in' => now()->addSeconds(3600),
         ]);
     }
-
 }
