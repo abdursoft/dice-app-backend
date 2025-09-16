@@ -71,6 +71,7 @@ class AuthController extends Controller
                     'token'         => $user->toke,
                     'email'         => $user->email,
                     'avatar'        => $user->avatar,
+                    'token'         => $user->token,
                     'highest_score' => $user->highest_score,
                 ],
             ], 201);
@@ -191,6 +192,7 @@ class AuthController extends Controller
                         'token'         => $user->toke,
                         'email'         => $user->email,
                         'avatar'        => $user->avatar,
+                        'token'         => $user->token,
                         'highest_score' => $user->highest_score,
                     ],
                 ], 200);
@@ -247,6 +249,7 @@ class AuthController extends Controller
                     'email'         => $user->email,
                     'role'          => $user->role,
                     'avatar'        => $user->avatar,
+                    'token'         => $user->token,
                     'highest_score' => $user->highest_score,
                 ],
             ], 200);
@@ -282,5 +285,66 @@ class AuthController extends Controller
             'token'      => $token,
             'expires_in' => now()->addSeconds(3600),
         ]);
+    }
+
+    /**
+     * Check user friends
+     */
+    public function searchFriends(Request $request)
+    {
+        $user = $request->attributes->get('auth_user');
+
+        if ($user) {
+            $friends = User::where('id', '!=', $user->id)
+                ->where('name', 'LIKE', '%' . ($request->input('name') ?? '') . '%')
+                ->where('role', 'user')
+                ->select('id', 'name', 'avatar', 'token', 'highest_score')
+                ->orderBy('highest_score', 'desc')
+                ->get();
+
+            return response()->json([
+                'code'    => 'FRIENDS_LIST',
+                'message' => 'Friends list retrieved successfully',
+                'friends' => $friends,
+            ], 200);
+        } else {
+            return response()->json([
+                'code'    => 'UNAUTHORIZED',
+                'message' => 'User is not authenticated',
+            ], 401);
+        }
+    }
+
+    /**
+     * Get friend details
+     */
+    public function friendDetails(Request $request, $token){
+        $user = $request->attributes->get('auth_user');
+
+        if ($user) {
+            $friend = User::where('token', $token)
+                ->where('role', 'user')
+                ->select('id', 'name', 'avatar', 'token', 'highest_score')
+                ->first();
+
+            if($friend){
+                return response()->json([
+                    'code'    => 'FRIEND_DETAILS',
+                    'message' => 'Friend details retrieved successfully',
+                    'friend' => $friend,
+                ], 200);
+            }else{
+                return response()->json([
+                    'code'    => 'NOT_FOUND',
+                    'message' => 'Friend not found',
+                ], 404);
+            }
+
+        } else {
+            return response()->json([
+                'code'    => 'UNAUTHORIZED',
+                'message' => 'User is not authenticated',
+            ], 401);
+        }
     }
 }

@@ -4,31 +4,31 @@ namespace App\Http\Controllers;
 
 use App\Models\GameRound;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 
 class GameRoundController extends Controller
 {
     /**
-     * Display a listing of game rounds.
+     * Display all rounds.
      */
     public function index()
     {
-        return response()->json(GameRound::with(['firstPlayer', 'secondPlayer'])->get());
+        $rounds = GameRound::with(['challenge', 'firstPlayer', 'secondPlayer'])->get();
+        return response()->json($rounds);
     }
 
     /**
-     * Store a newly created game round.
+     * Store a new round.
      */
     public function store(Request $request)
     {
         $data = $request->validate([
-            'message'       => 'nullable|string',
-            'status'        => 'in:playing,pause,completed',
-            'first_player'  => 'required|exists:users,id',
-            'second_player' => 'required|exists:users,id',
+            'message'            => 'nullable|string',
+            'game_turn'          => 'nullable|integer|min:0',
+            'status'             => 'in:playing,pause,completed',
+            'game_challenge_id'  => 'required|exists:game_challenges,id',
+            'first_player'       => 'required|exists:users,id',
+            'second_player'      => 'required|exists:users,id',
         ]);
-
-        $data['round_id'] = bin2hex(random_bytes(16)); // generate unique round id
 
         $round = GameRound::create($data);
 
@@ -36,21 +36,22 @@ class GameRoundController extends Controller
     }
 
     /**
-     * Display a single game round.
+     * Show a single round.
      */
     public function show(GameRound $gameRound)
     {
-        return response()->json($gameRound->load(['firstPlayer', 'secondPlayer']));
+        return response()->json($gameRound->load(['challenge', 'firstPlayer', 'secondPlayer']));
     }
 
     /**
-     * Update a game round.
+     * Update a round.
      */
     public function update(Request $request, GameRound $gameRound)
     {
         $data = $request->validate([
-            'message' => 'nullable|string',
-            'status'  => 'in:playing,pause,completed',
+            'message'   => 'nullable|string',
+            'game_turn' => 'nullable|integer|min:0',
+            'status'    => 'in:playing,pause,completed',
         ]);
 
         $gameRound->update($data);
@@ -59,12 +60,11 @@ class GameRoundController extends Controller
     }
 
     /**
-     * Remove a game round.
+     * Delete a round.
      */
     public function destroy(GameRound $gameRound)
     {
         $gameRound->delete();
-
-        return response()->json(['message' => 'Game round deleted successfully']);
+        return response()->json(['message' => 'Round deleted successfully']);
     }
 }

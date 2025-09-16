@@ -49,4 +49,15 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->token)) {
+                $model->token = strtoupper(bin2hex(random_bytes(4)));
+            }
+        });
+    }
 }

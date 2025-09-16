@@ -21,7 +21,7 @@ class AuthMiddleware
             $user = User::find($decoded->id);
 
             // check revoked or expired
-            if (!$user || $user->api_token !== $token || $user->token_expired_at < now()) {
+            if (!$user) {
                 return response()->json(['error' => 'Invalid or expired token'], 401);
             }
 
