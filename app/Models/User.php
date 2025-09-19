@@ -60,4 +60,23 @@ class User extends Authenticatable
             }
         });
     }
+
+    // 🔹 Rounds where this user is the first player
+    public function firstRounds()
+    {
+        return $this->hasMany(GameRound::class, 'first_player');
+    }
+
+    // 🔹 Rounds where this user is the second player
+    public function secondRounds()
+    {
+        return $this->hasMany(GameRound::class, 'second_player');
+    }
+
+    // 🔹 If you want to fetch all rounds (as first OR second player)
+    public function gameRounds()
+    {
+        return $this->hasMany(GameRound::class, 'first_player')
+                    ->orWhere('second_player', $this->id);
+    }
 }

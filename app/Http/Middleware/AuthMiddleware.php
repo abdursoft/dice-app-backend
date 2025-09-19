@@ -32,6 +32,7 @@ class AuthMiddleware
                 ],401);
             }
             $request->attributes->set('auth_user', $user); // set auth_user on request
+            $request->setUserResolver(fn() => $user);
             return $next($request);
         } catch (\Exception $e) {
             return response()->json([

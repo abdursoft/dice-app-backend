@@ -27,4 +27,9 @@ class GameChallenge extends Model
     {
         return $this->belongsTo(User::class, 'challengee_id');
     }
+
+    // game round relation
+    public function gameround(){
+        return $this->hasOne(GameRound::class);
+    }
 }

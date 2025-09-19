@@ -37,6 +37,11 @@ class GameRound extends Model
         return $this->belongsTo(User::class, 'second_player');
     }
 
+    // game turn relation
+    public function gameturn(){
+       return $this->hasOne(GameTurn::class);
+    }
+
     // Auto-generate round_id if not set
     protected static function boot()
     {

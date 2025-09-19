@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ChallengeEvent;
+use App\Models\GameChallenge;
 use App\Models\GameRound;
 use Illuminate\Http\Request;
 
@@ -31,6 +33,11 @@ class GameRoundController extends Controller
         ]);
 
         $round = GameRound::create($data);
+
+        $challenge = GameChallenge::find($request->game_challenge_id);
+        
+        // broadcast to the challengee
+        broadcast( new ChallengeEvent($challenge) );
 
         return response()->json($round, 201);
     }

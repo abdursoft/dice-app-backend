@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\ChallengeEvent;
 use App\Models\GameChallenge;
 use Illuminate\Http\Request;
 
@@ -10,9 +11,20 @@ class GameChallengeController extends Controller
     /**
      * Display a listing of challenges.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $challenges = GameChallenge::with(['challenger', 'challengee'])->get();
+        $challenges = GameChallenge::where('challengee_id',$request->user()->id)
+        ->with([
+            'challenger' => function($q){
+                $q->select('id','name','avatar','token');
+            },
+            'challengee' => function($q){
+                $q->select('id','name','avatar','token');
+            },
+            'gameround'
+        ])
+        ->where('status', 'pending')
+        ->orderBy('id','desc')->get();
         return response()->json($challenges);
     }
 
@@ -31,6 +43,28 @@ class GameChallengeController extends Controller
         $challenge = GameChallenge::create($data);
 
         return response()->json($challenge, 201);
+    }
+
+    /**
+     * Accept game challenge
+     */
+    public function acceptChallenge(Request $request,$id){
+        $challenge = GameChallenge::find($id);
+        if(!$challenge){
+            return response()->json([],422);
+        }
+        $challenge->status = 'accepted';
+        $challenge->save();
+        $challenge = $challenge->load([
+            'challenger' => function($q){
+                $q->select('id','name','avatar','token');
+            },
+            'challengee' => function($q){
+                $q->select('id','name','avatar','token');
+            },
+            'gameround'
+        ]);
+        return response()->json($challenge);
     }
 
     /**

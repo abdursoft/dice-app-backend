@@ -55,7 +55,7 @@ class AuthController extends Controller
 
             DB::commit();
 
-            $token  = JWTAuth::createToken($user->role, 1, $user->id, $user->email);
+            $token  = JWTAuth::createToken($user->role, 12, $user->id, $user->email);
             $expire = now()->addSeconds(3600);
 
             return response()->json([
@@ -175,7 +175,7 @@ class AuthController extends Controller
 
         if ($user) {
             if (Hash::check($request->input('password'), $user->password)) {
-                $token = JWTAuth::createToken($user->role, 1, $user->id, $user->email);
+                $token = JWTAuth::createToken($user->role, 12, $user->id, $user->email);
 
                 $expire = now()->addSeconds(3600);
 
@@ -260,6 +260,22 @@ class AuthController extends Controller
             ], 401);
         }
     }
+
+    // check authenticated user
+    public function checkPusherAuthUser(Request $request)
+    {
+        $user = $request->user(); // comes from your PusherMiddleware
+        if (!$user) {
+            return response()->json([], 403);
+        }
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+        ]);
+    }
+
 
     /**
      * Refresh JWT token.
