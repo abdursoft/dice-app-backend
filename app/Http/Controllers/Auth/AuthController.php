@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Essentials\JWTAuth;
+use App\Models\GameRound;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -55,7 +56,7 @@ class AuthController extends Controller
 
             DB::commit();
 
-            $token  = JWTAuth::createToken($user->role, 12, $user->id, $user->email);
+            $token  = JWTAuth::createToken($user->role, 8760, $user->id, $user->email);
             $expire = now()->addSeconds(3600);
 
             return response()->json([
@@ -125,9 +126,7 @@ class AuthController extends Controller
     public function profileData(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'name'  => "required|string|unique:users,name," . $request->user->id . ",id",
-            'email' => "required|string|unique:users,email," . $request->user->id . ",id",
-            'bio'   => "required|max:25",
+            'name'  => "required|string",
         ]);
 
         if ($validator->fails()) {
@@ -139,7 +138,7 @@ class AuthController extends Controller
         }
 
         try {
-            User::where('id', $request->user->id)->update($validator->validate());
+            User::where('id', $request->user()->id)->update($validator->validate());
             return response()->json([
                 'code'    => 'PROFILE_DATA_UPDATED',
                 'message' => 'Profile data successfully updated',
@@ -175,7 +174,7 @@ class AuthController extends Controller
 
         if ($user) {
             if (Hash::check($request->input('password'), $user->password)) {
-                $token = JWTAuth::createToken($user->role, 12, $user->id, $user->email);
+                $token = JWTAuth::createToken($user->role, 8760, $user->id, $user->email);
 
                 $expire = now()->addSeconds(3600);
 
@@ -362,5 +361,13 @@ class AuthController extends Controller
                 'message' => 'User is not authenticated',
             ], 401);
         }
+    }
+
+    /**
+     * Game statistics
+     */
+    public function statistics(Request $request){
+        $data = GameRound::getUserStats($request->user()->id);
+        return response()->json($data);
     }
 }

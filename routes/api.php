@@ -5,6 +5,7 @@ use App\Http\Controllers\GameChallengeController;
 use App\Http\Controllers\GameRoundController;
 use App\Http\Middleware\AuthMiddleware;
 use App\Http\Middleware\PusherMiddleware;
+use App\Models\GameRound;
 use Illuminate\Support\Facades\Route;
 
 use Illuminate\Http\Request;
@@ -25,6 +26,8 @@ Route::prefix('v1')->group(function () {
     // authenticated routes
     Route::middleware([AuthMiddleware::class])->group(function () {
         Route::post('logout', [AuthController::class, 'signout']);
+
+        Route::post('change-name',[AuthController::class, 'profileData']);
 
         // friends routes
         Route::prefix('friends')->group(function () {
@@ -54,4 +57,8 @@ Route::prefix('v1')->group(function () {
 
     });
 
+    // game statistics
+    Route::get('game-stats',[AuthController::class, 'statistics']);
+
 });
+
