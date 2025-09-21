@@ -71,7 +71,9 @@ public function store(Request $request)
         // Broadcast game end
         broadcast(new GameWon($score->round_id, $winner, $scores,$lastScores));
         // Mark round as completed
-        $gameRound->update(['status' => 'completed']);
+        $gameRound->status = 'completed';
+        $gameRound->winner_id = $winner;
+        $gameRound->save();
     } else {
         // Normal turn update
         broadcast(new TurnEvent(
