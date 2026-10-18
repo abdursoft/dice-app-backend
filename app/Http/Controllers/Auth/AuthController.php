@@ -199,13 +199,13 @@ class AuthController extends Controller
                 return response()->json([
                     'code'    => 'INCORRECT_PASSWORD',
                     'message' => 'Incorrect Password',
-                ], 400);
+                ], 401);
             }
         } else {
             return response()->json([
                 'code'    => 'LOGIN_FAILED',
                 'message' => 'User not found',
-            ], 404);
+            ], 401);
         }
     }
 
